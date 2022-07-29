@@ -10,11 +10,20 @@ from .config import config
 
 app = Flask(__name__)
 app.config.from_object(config)
+app.config["SECRET_KEY"] = "key"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:123456@localhost/db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+
 CORS(app)
+
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 
 def register_subpackages():
