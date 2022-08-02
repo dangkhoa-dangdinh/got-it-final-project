@@ -1,31 +1,39 @@
 from functools import wraps
 
-import jwt
-from flask import jsonify, request
+# import jwt
+from flask import request
 
-from main import app
+# from main import app
+from main.commons.exceptions import BadRequest, Unauthorized
+from main.libs.utils import decode_jwt_token
+from main.models.user import UserModel
 
-from ..models.user_model import UserModel
+
+def validate_input(func):
+    @wraps(func)
+    def decorator(*args, **kwargs):
+        pass
 
 
 def jwt_required(func):
     @wraps(func)
     def decorator(*args, **kwargs):
         token = None
-        # jwt is passed in the request header
         if "Authorization" in request.headers:
             token = request.headers["Authorization"]
-        # return 401 if token is not passed
         if not token:
-            return jsonify({"message": "Token is missing!!"}), 401
-
+            raise Unauthorized()
         try:
-            # decoding the payload to fetch the stored details
-            data = jwt.decode(token, app.config["SECRET_KEY"])
-            current_user = UserModel.query.filter_by(id=data["id"]).first()
+            payload = decode_jwt_token(token)
+            current_user = UserModel.find_by(id=payload["sub"])
         except Exception:
-            return jsonify({"message": "Token is invalid !!"}), 401
-        # returns the current logged in users contex to the routes
+            raise BadRequest()
         return func(current_user, *args, **kwargs)
 
     return decorator
+
+
+def check_is_owner(func):
+    @wraps(func)
+    def decorator(*args, **kwargs):
+        pass

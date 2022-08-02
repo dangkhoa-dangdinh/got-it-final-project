@@ -1,6 +1,6 @@
 from marshmallow import fields
 
-from .base import BaseSchema
+from main.schemas.base import BaseSchema
 
 
 class ErrorSchema(BaseSchema):

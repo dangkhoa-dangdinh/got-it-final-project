@@ -1,4 +1,4 @@
-from .exceptions import (
+from main.commons.exceptions import (
     BaseError,
     InternalServerError,
     MethodNotAllowed,
