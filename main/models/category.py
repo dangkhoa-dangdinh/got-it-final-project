@@ -16,20 +16,17 @@ class CategoryModel(db.Model):
     def __init__(self, **kwargs):
         super(CategoryModel, self).__init__(**kwargs)
 
-    def json(self):
-        return {"id": self.id, "user_id": self.user_id, "name": self.name}
+    @classmethod
+    def paginate_categories(cls, page, per_page):
+        return cls.query.paginate(page, per_page, max_per_page=20, error_out=True)
 
     @classmethod
-    def find_by_id(cls, _id):
-        return cls.query.filter_by(id=_id).first()
-
-    @classmethod
-    def find_by_name(cls, name):
-        return cls.query.filter_by(name=name).first()
-
-    @classmethod
-    def find_all_categories(cls):
-        return cls.query.all()
+    def find_by(cls, **kwargs):
+        if "name" in kwargs:
+            return cls.query.filter_by(name=kwargs["name"]).one_or_none()
+        elif "id" in kwargs:
+            return cls.query.filter_by(id=kwargs["id"]).one_or_none()
+        return None
 
     def save_to_db(self):
         db.session.add(self)

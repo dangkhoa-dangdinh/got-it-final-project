@@ -4,7 +4,6 @@ from hashlib import sha512
 from os import urandom
 
 import jwt
-from marshmallow import validate
 
 
 def generate_random_salt():
@@ -16,14 +15,6 @@ def generate_hashed_password(password, salt):
         b"%b" % bytes(password + salt, "utf-8"),
     )
     return hashed_password.hexdigest()
-
-
-# def generate_jwt_token(payload_data):
-#     from main import app
-#     token = jwt.encode(
-#         payload=payload_data, key=app.config.get("JWT_SECRET_KEY"), algorithm="HS256"
-#     )
-#     return token
 
 
 def generate_jwt_token(user_id):
@@ -55,13 +46,3 @@ def decode_jwt_token(token):
         return {"message": "Access Token Expired"}, 401
     except jwt.InvalidTokenError:
         return {"message": "Invalid token"}, 400
-
-
-def validate_password(password):
-    reg = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$"
-    validator = validate.Regexp(
-        reg,
-        error="Passwords must have at least 6 characters, including at least one "
-        "lowercase letter, one uppercase letter, one digit",
-    )
-    return validator(password)

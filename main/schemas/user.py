@@ -1,37 +1,51 @@
 from string import ascii_lowercase, ascii_uppercase, digits
 
-from marshmallow import ValidationError, fields, post_load
+from marshmallow import fields, validates
 
-from main.models.user import UserModel
+from main.commons.exceptions import BadRequest, ValidationError
 from main.schemas.base import BaseSchema
 
 
-def validate_password(password):
-    if len(password) < 6:
-        raise ValidationError("Passwords must have at least 6 characters")
-
-    has_lower = False
-    has_upper = False
-    has_digit = False
-    for char in password:
-        if char in ascii_lowercase:
-            has_lower = True
-        elif char in ascii_uppercase:
-            has_upper = True
-        elif char in digits:
-            has_digit = True
-
-    if not (has_upper and has_lower and has_digit):
-        raise ValidationError(
-            "Password must include at least one "
-            "lowercase letter, one uppercase letter, one digit"
-        )
-
-
-class UserSchema(BaseSchema):
+class RegisterUserSchema(BaseSchema):
     email = fields.Email(required=True)
-    password = fields.String(required=True, validate=validate_password)
+    password = fields.String(required=True)
 
-    @post_load
-    def make_user(self, data, **kwargs):
-        return UserModel(**data)
+    def handle_error(
+        self, error: ValidationError, data: [email, password], *, many: bool, **kwargs
+    ):
+        raise BadRequest()
+
+    @validates("password")
+    def validate_password(self, password):
+        if len(password) < 6:
+            raise ValidationError(
+                error_message="Passwords must have at least 6 characters"
+            )
+
+        has_lower = False
+        has_upper = False
+        has_digit = False
+
+        for char in password:
+            if char in ascii_lowercase:
+                has_lower = True
+            elif char in ascii_uppercase:
+                has_upper = True
+            elif char in digits:
+                has_digit = True
+
+        if not (has_upper and has_lower and has_digit):
+            raise ValidationError(
+                error_message="Password must include at least one "
+                "lowercase letter, one uppercase letter, one digit"
+            )
+
+
+class LoginUserSchema(BaseSchema):
+    email = fields.Email(required=True)
+    password = fields.String(required=True)
+
+    def handle_error(
+        self, error: ValidationError, data: [email, password], *, many: bool, **kwargs
+    ):
+        raise BadRequest()

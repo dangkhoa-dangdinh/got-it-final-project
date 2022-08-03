@@ -23,21 +23,17 @@ class UserModel(db.Model):
         self.salt = generate_random_salt()
         self.hashed_password = generate_hashed_password(password, self.salt)
 
-    # Put Schema here
-    def convert_to_dict(self):
-        return {"email": self.email, "id": self.id}
-
     @classmethod
     def find_by(cls, **kwargs):
         if "email" in kwargs.keys():
-            return cls.query.filter_by(email=kwargs["email"]).first()
+            return cls.query.filter_by(email=kwargs["email"]).one_or_none()
         elif "id" in kwargs.keys():
-            return cls.query.filter_by(id=kwargs["id"]).first()
+            return cls.query.filter_by(id=kwargs["id"]).one_or_none()
         return None
 
     def validate_user(self, password):
-        hashed_password = generate_hashed_password(password, self.salt)
-        if hashed_password == self.hashed_password:
+        password_to_check = generate_hashed_password(password, self.salt)
+        if password_to_check == self.hashed_password:
             return True
         return False
 

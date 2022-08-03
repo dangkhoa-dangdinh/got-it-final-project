@@ -8,6 +8,7 @@ from alembic.config import Config
 
 from main import app as _app
 from main import db
+from tests.helper import setup_db
 
 if os.getenv("ENVIRONMENT") != "test":
     print('Tests should be run with "ENVIRONMENT=test"')
@@ -34,6 +35,9 @@ def recreate_database(app):
     db.drop_all()
     _config = Config(ALEMBIC_CONFIG)
     upgrade(_config, "heads")
+
+    db.create_all()
+    setup_db()
 
 
 @pytest.fixture(scope="function", autouse=True)

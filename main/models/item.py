@@ -1,7 +1,5 @@
 from main import db
 
-# from main.commons.decorators import jwt_required
-
 
 class ItemModel(db.Model):
     __tablename__ = "item"
@@ -19,25 +17,21 @@ class ItemModel(db.Model):
     def __init__(self, **kwargs):
         super(ItemModel, self).__init__(**kwargs)
 
-    def json(self):
-        return {
-            "id": self.id,
-            "category_id": self.category_id,
-            "name": self.name,
-            "description": self.description,
-        }
+    @classmethod
+    def paginate_items(cls, page, per_page, category_id):
+        return cls.find_by(category_id=category_id).paginate(
+            page, per_page, max_per_page=20, error_out=True
+        )
 
     @classmethod
-    def find_by_category_id(cls, category_id):
-        return cls.query.filter_by(category_id=category_id)
-
-    @classmethod
-    def find_by_name(cls, name):
-        return cls.query.filter_by(name=name).one_or_none()
-
-    @classmethod
-    def find_by_id(cls, _id):
-        return cls.query.filter_by(id=_id).first()
+    def find_by(cls, **kwargs):
+        if "name" in kwargs:
+            return cls.query.filter_by(name=kwargs["name"]).one_or_none()
+        elif "id" in kwargs:
+            return cls.query.filter_by(id=kwargs["id"]).one_or_none()
+        elif "category_id" in kwargs:
+            return cls.query.filter_by(category_id=kwargs["category_id"])
+        return None
 
     def save_to_db(self):
         db.session.add(self)
