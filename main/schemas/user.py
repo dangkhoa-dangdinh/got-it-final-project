@@ -2,18 +2,13 @@ from string import ascii_lowercase, ascii_uppercase, digits
 
 from marshmallow import fields, validates
 
-from main.commons.exceptions import BadRequest, ValidationError
+from main.commons.exceptions import ValidationError
 from main.schemas.base import BaseSchema
 
 
 class RegisterUserSchema(BaseSchema):
     email = fields.Email(required=True)
     password = fields.String(required=True)
-
-    def handle_error(
-        self, error: ValidationError, data: [email, password], *, many: bool, **kwargs
-    ):
-        raise BadRequest()
 
     @validates("password")
     def validate_password(self, password):
@@ -44,8 +39,3 @@ class RegisterUserSchema(BaseSchema):
 class LoginUserSchema(BaseSchema):
     email = fields.Email(required=True)
     password = fields.String(required=True)
-
-    def handle_error(
-        self, error: ValidationError, data: [email, password], *, many: bool, **kwargs
-    ):
-        raise BadRequest()

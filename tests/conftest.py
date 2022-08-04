@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from pathlib import Path
@@ -60,3 +61,20 @@ def session(monkeypatch):
 @pytest.fixture(scope="function", autouse=True)
 def client(app, session):
     return app.test_client()
+
+
+@pytest.fixture(scope="function")
+def get_application_json_header():
+    return [("Content-Type", "application/json;")]
+
+
+@pytest.fixture(scope="function")
+def successful_authenticate(client, get_application_json_header):
+    log_in_data = {"email": "a@gmail.com", "password": "Abc123"}  # user_id: 1
+    log_in_request = client.post(
+        "/users/auth", data=json.dumps(log_in_data), headers=get_application_json_header
+    )
+    jwt_token = json.loads(log_in_request.data.decode())["access_token"]
+    print(jwt_token)
+
+    return jwt_token

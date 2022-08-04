@@ -1,10 +1,7 @@
-# from datetime import datetime, timedelta
+import hmac
 
 from main import db
-from main.libs.utils import (  # generate_jwt_token,
-    generate_hashed_password,
-    generate_random_salt,
-)
+from main.libs.utils import generate_hashed_password, generate_random_salt
 
 
 class UserModel(db.Model):
@@ -13,8 +10,8 @@ class UserModel(db.Model):
     email = db.Column(db.String(256), nullable=False)
     hashed_password = db.Column(db.String(256), nullable=False)
     salt = db.Column(db.String(256), nullable=False)
-    time_created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
-    time_updated = db.Column(
+    created_time = db.Column(db.DateTime, default=db.func.now(), nullable=False)
+    updated_time = db.Column(
         db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False
     )
 
@@ -29,18 +26,13 @@ class UserModel(db.Model):
             return cls.query.filter_by(email=kwargs["email"]).one_or_none()
         elif "id" in kwargs.keys():
             return cls.query.filter_by(id=kwargs["id"]).one_or_none()
-        return None
 
-    def validate_user(self, password):
+    def validate_password(self, password):
         password_to_check = generate_hashed_password(password, self.salt)
-        if password_to_check == self.hashed_password:
+        if hmac.compare_digest(password_to_check, self.hashed_password):
             return True
         return False
 
     def save_to_db(self):
         db.session.add(self)
-        db.session.commit()
-
-    def delete_from_db(self):
-        db.session.delete(self)
         db.session.commit()

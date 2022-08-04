@@ -1,1 +1,1 @@
-from main.controllers import category, item, probe, user
+from main.controllers import category, item, user

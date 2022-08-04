@@ -1,112 +1,83 @@
-from flask import request
-
 from main import app
-from main.commons.decorators import jwt_required
-from main.commons.exceptions import BadRequest, Forbidden, InternalServerError, NotFound
+from main.commons.decorators import (
+    check_existing_category,
+    check_existing_item,
+    check_owner,
+    jwt_required,
+    validate_input,
+)
+from main.commons.exceptions import ItemAlreadyExists, MissingAllFields
 from main.models.category import CategoryModel
 from main.models.item import ItemModel
+from main.models.pagination import PaginationModel
 from main.schemas.base import PaginationSchema
-from main.schemas.item import ItemSchema
+from main.schemas.item import ItemListSchema, ItemSchema, ItemUpdateSchema
 
 
 @app.route("/categories/<int:category_id>/items", methods=["GET"])
-def get_item_list(category_id):
-    try:
-        page = int(request.args.get("page"))
-        per_page = int(request.args.get("per_page"))
-        pagination = ItemModel.paginate_items(page, per_page, category_id)
-        items = pagination.items
-        if items:
-            response = {"items": [ItemSchema().dump(item) for item in items]}
-        else:
-            response = {"items": []}
-        response.update(PaginationSchema().dump(pagination))
-        return response
-    except ValueError:
-        raise BadRequest()
+@check_existing_category(CategoryModel)
+@validate_input(PaginationSchema)
+def get_item_list(category_id, data, **__):
+    page = data.get("page")
+    per_page = data.get("per_page")
+    pagination = ItemModel.paginate_items(page, per_page, category_id)
+    items = pagination.items
+
+    pagination_model = PaginationModel(
+        pagination.page, pagination.per_page, pagination.total, items
+    )
+    response = ItemListSchema().dump(pagination_model)
+    return response
 
 
 @app.route("/categories/<int:category_id>/items", methods=["POST"])
 @jwt_required
-def post_item(user_id, category_id):
-    # Validation
-    post_data = ItemSchema().load(request.get_json())
-    name = post_data["name"]
+@validate_input(ItemSchema)
+@check_existing_category(CategoryModel)
+@check_owner
+def post_item(category_id, data, **__):
+    name = data.get("name")
+    description = data.get("description")
+
     if ItemModel.find_by(name=name):
-        raise BadRequest(error_message="An item with the same name already exists")
-    description = post_data["description"]
+        raise ItemAlreadyExists()
 
-    # Check authorization
-    current_category = CategoryModel.find_by(id=category_id)
-
-    if current_category:
-        if current_category.user_id != user_id:
-            raise Forbidden()
-        else:
-            if name and description:
-                new_item = ItemModel(
-                    name=name, description=description, category_id=category_id
-                )
-                try:
-                    new_item.save_to_db()
-                    return {}, 201
-                except Exception:
-                    raise InternalServerError()
-            else:
-                raise BadRequest(error_message="Missing required fields")
-    else:
-        raise NotFound(error_message="Category not found")
+    item = ItemModel(name=name, description=description, category_id=category_id)
+    item.save_to_db()
+    return {}
 
 
 @app.route("/categories/<int:category_id>/items/<int:item_id>", methods=["GET"])
-def get_item(category_id, item_id):
-    item = (
-        ItemModel.find_by(category_id=category_id).filter_by(id=item_id).one_or_none()
-    )
-    if item:
-        return ItemSchema().dump(item), 201
-    raise NotFound()
+@check_existing_category(CategoryModel)
+@check_existing_item(ItemModel)
+def get_item(item, **__):
+    return ItemSchema().dump(item)
 
 
 @app.route("/categories/<int:category_id>/items/<int:item_id>", methods=["PUT"])
 @jwt_required
-def put_item(user_id, category_id, item_id):
-    post_data = ItemSchema().load(request.get_json())
+@validate_input(ItemUpdateSchema)
+@check_existing_category(CategoryModel)
+@check_existing_item(ItemModel)
+@check_owner
+def put_item(item, data, **__):
 
-    name = post_data.get("name")
-    description = post_data.get("description")
+    if ItemModel.find_by(**data):
+        raise ItemAlreadyExists()
 
-    item = (
-        ItemModel.find_by(category_id=category_id).filter_by(id=item_id).one_or_none()
-    )
+    if data == {}:
+        raise MissingAllFields()
 
-    if item:
-        if item.category.user_id != user_id:
-            raise Forbidden()
-        else:
-            if description:
-                item.description = description
-            elif name:
-                item.name = name
-            else:
-                raise BadRequest(error_message="All fields are missing")
-    else:
-        item = ItemModel(name=name, description=description, category_id=category_id)
-        item.save_to_db()
-        return {}, 201
+    item.update_to_db(item.id, **data)
+
+    return {}
 
 
 @app.route("/categories/<int:category_id>/items/<int:item_id>", methods=["DELETE"])
 @jwt_required
-def delete_item(user_id, category_id, item_id):
-    item = (
-        ItemModel.find_by(category_id=category_id).filter_by(id=item_id).one_or_none()
-    )
-    if item:
-        if item.category.user_id == user_id:
-            item.delete_from_db()
-            return {}, 201
-        else:
-            raise Forbidden()
-    else:
-        raise NotFound()
+@check_existing_category(CategoryModel)
+@check_existing_item(ItemModel)
+@check_owner
+def delete_item(item, **__):
+    item.delete_from_db()
+    return {}

@@ -7,18 +7,18 @@ class TestUser:
     accept_json = [("Content-Type", "application/json;")]
 
     def test_successful_sign_up(self, client):
-        payload = dict(email="d@gmail.com", password="Abc123")
-        request_body = client.post(
-            "/users/signup", data=json.dumps(payload), headers=TestUser.accept_json
+        data = {"email": "d@gmail.com", "password": "Abc123"}
+        response = client.post(
+            "/users/signup", data=json.dumps(data), headers=TestUser.accept_json
         )
-        assert request_body.status_code == 201
+        assert response.status_code == 200
 
     def test_successful_auth(self, client):
-        payload = dict(email="a@gmail.com", password="Abc123")
-        request_body = client.post(
-            "/users/auth", data=json.dumps(payload), headers=TestUser.accept_json
+        data = {"email": "a@gmail.com", "password": "Abc123"}
+        response = client.post(
+            "/users/auth", data=json.dumps(data), headers=TestUser.accept_json
         )
-        assert request_body.status_code == 201
+        assert response.status_code == 200
 
     @pytest.mark.parametrize(
         "email, password",
@@ -35,11 +35,11 @@ class TestUser:
         ],
     )
     def test_invalid_sign_up(self, client, email, password):
-        payload = dict(email=email, password=password)
-        sign_up_request_body = client.post(
-            "/users/signup", data=json.dumps(payload), headers=TestUser.accept_json
+        data = {"email": email, "password": password}
+        response = client.post(
+            "/users/signup", data=json.dumps(data), headers=TestUser.accept_json
         )
-        assert sign_up_request_body.status_code == 400
+        assert response.status_code == 400
 
     @pytest.mark.parametrize(
         "email, password",
@@ -49,12 +49,12 @@ class TestUser:
             ("agmail.com", "some_password"),  # Invalid email format
             ("a@gmailcom", "some_password"),  # Invalid email format
             ("d@gmail.com", "some_password"),  # Unregistered user
-            ("", ""),  # Missing email & password
+            ("", ""),  # Invalid email & password
         ],
     )
     def test_invalid_auth(self, client, email, password):
-        payload = dict(email=email, password=password)
-        auth_request_body = client.post(
-            "/users/auth", data=json.dumps(payload), headers=TestUser.accept_json
+        data = {"email": email, "password": password}
+        response = client.post(
+            "/users/auth", data=json.dumps(data), headers=TestUser.accept_json
         )
-        assert auth_request_body.status_code == 400
+        assert response.status_code == 400

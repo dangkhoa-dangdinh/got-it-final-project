@@ -32,8 +32,34 @@ pip install -r requirements-dev.txt
 
 ## Running
 
+### Running MySQL to initialize database
+```shell
+mysql -u root -p 123456
+create database catalog;
+use database catalog;
+```
+
+
+### Setting up database with Flask Migration
+```shell
+flask db init
+flask db migrate
+flask db upgrade
+```
+
 Inside the virtual environment, run
 
 ```shell
 python run.py
+```
+
+## Testing
+```shell
+ENVIRONMENT=test pytest
+```
+
+## Get Coverage Report
+```shell
+ENVIRONMENT=test coverage run -m pytest
+coverage html
 ```

@@ -6,8 +6,8 @@ class ItemModel(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(256), unique=True, nullable=False)
     description = db.Column(db.String(256), nullable=False)
-    time_created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
-    time_updated = db.Column(
+    created_time = db.Column(db.DateTime, default=db.func.now(), nullable=False)
+    updated_time = db.Column(
         db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False
     )
 
@@ -15,7 +15,7 @@ class ItemModel(db.Model):
     category = db.relationship("CategoryModel", back_populates="items")
 
     def __init__(self, **kwargs):
-        super(ItemModel, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     @classmethod
     def paginate_items(cls, page, per_page, category_id):
@@ -31,7 +31,10 @@ class ItemModel(db.Model):
             return cls.query.filter_by(id=kwargs["id"]).one_or_none()
         elif "category_id" in kwargs:
             return cls.query.filter_by(category_id=kwargs["category_id"])
-        return None
+
+    def update_to_db(self, item_id, **kwargs):
+        self.query.filter_by(id=item_id).update(dict(kwargs))
+        db.session.commit()
 
     def save_to_db(self):
         db.session.add(self)

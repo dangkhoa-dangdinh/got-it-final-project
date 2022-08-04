@@ -5,6 +5,8 @@ from os import urandom
 
 import jwt
 
+from main.commons.exceptions import ExpiredAccessToken, InvalidAccessToken
+
 
 def generate_random_salt():
     return b64encode(urandom(64)).decode("utf-8")
@@ -32,17 +34,17 @@ def generate_jwt_token(user_id):
 
 
 def decode_jwt_token(token):
-    from main import app
+    from main import config
 
     try:
         payload = jwt.decode(
             jwt=token,
-            key=app.config.get("JWT_SECRET_KEY"),
+            key=config.JWT_SECRET_KEY,
             algorithms="HS256",
             options={"verify_signature": True, "verify_exp": True},
         )
         return payload["sub"]
     except jwt.ExpiredSignatureError:
-        return {"message": "Access Token Expired"}, 401
+        raise ExpiredAccessToken()
     except jwt.InvalidTokenError:
-        return {"message": "Invalid token"}, 400
+        raise InvalidAccessToken()
