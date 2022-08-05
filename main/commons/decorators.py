@@ -8,10 +8,11 @@ from main.commons.exceptions import (
     ForbiddenNotOwner,
     ItemNotFound,
     LackingAccessToken,
-    UserNotFound,
     ValidationError,
 )
 from main.libs.utils import decode_jwt_token
+from main.models.category import CategoryModel
+from main.models.item import ItemModel
 from main.models.user import UserModel
 
 
@@ -23,11 +24,8 @@ def jwt_required(func):
             token = request.headers["Authorization"]
         if not token:
             raise LackingAccessToken()
-        try:
-            payload = decode_jwt_token(token)
-            user = UserModel.find_by(id=payload)
-        except ValueError:
-            raise UserNotFound()
+        payload = decode_jwt_token(token)
+        user = UserModel.find_by(id=payload)
         return func(user_id=user.id, *args, **kwargs)
 
     return decorator
@@ -37,8 +35,8 @@ def validate_input(schema):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            method = request.method
-            if method in ["POST", "PUT"]:
+            http_method = request.method
+            if http_method in ("POST", "PUT"):
                 data = request.get_json()
             else:
                 data = request.args
@@ -53,12 +51,12 @@ def validate_input(schema):
     return decorator
 
 
-def check_existing_category(model):
+def check_existing_category():
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            _id = kwargs.get("category_id")
-            category = model.find_by(id=_id)
+            category_id = kwargs.get("category_id")
+            category = CategoryModel.find_by(id=category_id)
             if not category:
                 raise CategoryNotFound()
             return func(category=category, *args, **kwargs)
@@ -68,12 +66,12 @@ def check_existing_category(model):
     return decorator
 
 
-def check_existing_item(model):
+def check_existing_item():
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            _id = kwargs.get("item_id")
-            item = model.find_by(id=_id)
+            item_id = kwargs.get("item_id")
+            item = ItemModel.find_by(id=item_id)
             if not item or kwargs.get("category").id != item.category_id:
                 raise ItemNotFound()
             return func(item=item, *args, **kwargs)

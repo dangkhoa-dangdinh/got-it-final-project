@@ -42,14 +42,14 @@ def post_category(user_id, data):
 
 
 @app.route("/categories/<int:category_id>", methods=["GET"])
-@check_existing_category(CategoryModel)
+@check_existing_category()
 def get_category(category, **__):
     return CategorySchema().dump(category)
 
 
 @app.route("/categories/<int:category_id>", methods=["DELETE"])
 @jwt_required
-@check_existing_category(CategoryModel)
+@check_existing_category()
 @check_owner
 def delete_category(category, category_id, **__):
     for item in ItemModel.find_by(category_id=category_id).all():

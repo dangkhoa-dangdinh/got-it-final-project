@@ -31,7 +31,6 @@ class _ErrorCode:
     NOT_FOUND = 404000
     CATEGORY_NOT_FOUND = 404001
     ITEM_NOT_FOUND = 404002
-    USER_NOT_FOUND = 404003
     METHOD_NOT_ALLOWED = 405000
     INTERNAL_SERVER_ERROR = 500000
 
@@ -53,7 +52,6 @@ class _ErrorMessage:
     NOT_FOUND = "Not found."
     CATEGORY_NOT_FOUND = "Category not found"
     ITEM_NOT_FOUND = "Item not found"
-    USER_NOT_FOUND = "User not found"
     METHOD_NOT_ALLOWED = "Method not allowed."
     INTERNAL_SERVER_ERROR = "Internal server error."
 
@@ -186,12 +184,6 @@ class InvalidEmailOrPassword(BaseError):
     status_code = StatusCode.BAD_REQUEST
     error_message = _ErrorMessage.INVALID_EMAIL_OR_PASSWORD
     error_code = _ErrorCode.INVALID_EMAIL_OR_PASSWORD
-
-
-class UserNotFound(BaseError):
-    status_code = StatusCode.NOT_FOUND
-    error_message = _ErrorMessage.USER_NOT_FOUND
-    error_code = _ErrorCode.USER_NOT_FOUND
 
 
 class CategoryNotFound(BaseError):

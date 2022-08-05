@@ -7,7 +7,6 @@ from main.commons.decorators import (
     validate_input,
 )
 from main.commons.exceptions import ItemAlreadyExists, MissingAllFields
-from main.models.category import CategoryModel
 from main.models.item import ItemModel
 from main.models.pagination import PaginationModel
 from main.schemas.base import PaginationSchema
@@ -15,7 +14,7 @@ from main.schemas.item import ItemListSchema, ItemSchema, ItemUpdateSchema
 
 
 @app.route("/categories/<int:category_id>/items", methods=["GET"])
-@check_existing_category(CategoryModel)
+@check_existing_category()
 @validate_input(PaginationSchema)
 def get_item_list(category_id, data, **__):
     page = data.get("page")
@@ -33,7 +32,7 @@ def get_item_list(category_id, data, **__):
 @app.route("/categories/<int:category_id>/items", methods=["POST"])
 @jwt_required
 @validate_input(ItemSchema)
-@check_existing_category(CategoryModel)
+@check_existing_category()
 @check_owner
 def post_item(category_id, data, **__):
     name = data.get("name")
@@ -48,8 +47,8 @@ def post_item(category_id, data, **__):
 
 
 @app.route("/categories/<int:category_id>/items/<int:item_id>", methods=["GET"])
-@check_existing_category(CategoryModel)
-@check_existing_item(ItemModel)
+@check_existing_category()
+@check_existing_item()
 def get_item(item, **__):
     return ItemSchema().dump(item)
 
@@ -57,8 +56,8 @@ def get_item(item, **__):
 @app.route("/categories/<int:category_id>/items/<int:item_id>", methods=["PUT"])
 @jwt_required
 @validate_input(ItemUpdateSchema)
-@check_existing_category(CategoryModel)
-@check_existing_item(ItemModel)
+@check_existing_category()
+@check_existing_item()
 @check_owner
 def put_item(item, data, **__):
 
@@ -75,8 +74,8 @@ def put_item(item, data, **__):
 
 @app.route("/categories/<int:category_id>/items/<int:item_id>", methods=["DELETE"])
 @jwt_required
-@check_existing_category(CategoryModel)
-@check_existing_item(ItemModel)
+@check_existing_category()
+@check_existing_item()
 @check_owner
 def delete_item(item, **__):
     item.delete_from_db()
