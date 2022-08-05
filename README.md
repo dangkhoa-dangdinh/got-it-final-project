@@ -32,11 +32,11 @@ pip install -r requirements-dev.txt
 
 ## Running
 
-### Running MySQL to initialize database
+### Running MySQL to initialize database 
+#### Run these lines in mysql server
 ```shell
-mysql -u root -p 123456
 create database catalog;
-use database catalog;
+use catalog;
 ```
 
 
