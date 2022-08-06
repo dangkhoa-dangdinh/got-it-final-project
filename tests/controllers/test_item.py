@@ -225,7 +225,6 @@ class TestPutItem:
         not_found_category_id,
         item_test_data,
     ):
-
         post_response = client.put(
             f"/categories/{not_found_category_id}/items/{not_found_item_id}",
             json=item_test_data["post_data"],
@@ -244,7 +243,6 @@ class TestDeleteItem:
             headers=successful_authentication,
         )
 
-        print(delete_response)
         assert delete_response.status_code == 200
 
     def test_unauthorized_delete_item(self, client, item_test_data):
