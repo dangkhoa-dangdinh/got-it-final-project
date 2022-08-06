@@ -4,29 +4,28 @@ from flask import request
 from marshmallow import ValidationError as MarshmallowValidationError
 
 from main.commons.exceptions import (
+    BadRequest,
     CategoryNotFound,
     ForbiddenNotOwner,
     ItemNotFound,
     LackingAccessToken,
+    MissingAllFields,
     ValidationError,
 )
 from main.libs.utils import decode_jwt_token
 from main.models.category import CategoryModel
 from main.models.item import ItemModel
-from main.models.user import UserModel
 
 
 def jwt_required(func):
     @wraps(func)
-    def decorator(*args, **kwargs):
-        token = None
-        if "Authorization" in request.headers:
-            token = request.headers["Authorization"]
-        if not token:
+    def decorator(**kwargs):
+        try:
+            token = request.headers["Authorization"].split()[1]
+        except Exception:
             raise LackingAccessToken()
-        payload = decode_jwt_token(token)
-        user = UserModel.find_by(id=payload)
-        return func(user_id=user.id, *args, **kwargs)
+        user_id = decode_jwt_token(token)
+        return func(user_id=user_id, **kwargs)
 
     return decorator
 
@@ -34,58 +33,57 @@ def jwt_required(func):
 def validate_input(schema):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(**kwargs):
             http_method = request.method
             if http_method in ("POST", "PUT"):
-                data = request.get_json()
+                try:
+                    data = request.get_json()
+                except Exception:
+                    raise BadRequest()
             else:
                 data = request.args
+
+            if data == {}:
+                raise MissingAllFields()
+
             try:
                 data = schema().load(data)
             except MarshmallowValidationError as error:
                 raise ValidationError(error_data=error.messages)
-            return func(data=data, *args, **kwargs)
+            return func(data=data, **kwargs)
 
         return wrapper
 
     return decorator
 
 
-def check_existing_category():
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            category_id = kwargs.get("category_id")
-            category = CategoryModel.find_by(id=category_id)
-            if not category:
-                raise CategoryNotFound()
-            return func(category=category, *args, **kwargs)
+def check_existing_category(func):
+    @wraps(func)
+    def wrapper(**kwargs):
+        category = CategoryModel.query.filter_by(id=kwargs["category_id"]).one_or_none()
+        if not category:
+            raise CategoryNotFound()
+        return func(category=category, **kwargs)
 
-        return wrapper
-
-    return decorator
+    return wrapper
 
 
-def check_existing_item():
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            item_id = kwargs.get("item_id")
-            item = ItemModel.find_by(id=item_id)
-            if not item or kwargs.get("category").id != item.category_id:
-                raise ItemNotFound()
-            return func(item=item, *args, **kwargs)
+def check_existing_item(func):
+    @wraps(func)
+    def wrapper(**kwargs):
+        item = ItemModel.query.filter_by(id=kwargs["item_id"]).one_or_none()
+        if not item or kwargs["category"].id != item.category_id:
+            raise ItemNotFound()
+        return func(item=item, **kwargs)
 
-        return wrapper
-
-    return decorator
+    return wrapper
 
 
 def check_owner(func):
     @wraps(func)
-    def wrapper(*args, **kwargs):
-        if kwargs.get("category").user_id != kwargs.get("user_id"):
+    def wrapper(**kwargs):
+        if kwargs["category"].user_id != kwargs["user_id"]:
             raise ForbiddenNotOwner()
-        return func(*args, **kwargs)
+        return func(**kwargs)
 
     return wrapper

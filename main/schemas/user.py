@@ -7,8 +7,8 @@ from main.schemas.base import BaseSchema
 
 
 class RegisterUserSchema(BaseSchema):
-    email = fields.Email(required=True)
-    password = fields.String(required=True)
+    email = fields.Email(required=True, validate=BaseSchema.length_validator)
+    password = fields.String(required=True, validate=BaseSchema.length_validator)
 
     @validates("password")
     def validate_password(self, password):
@@ -37,5 +37,5 @@ class RegisterUserSchema(BaseSchema):
 
 
 class LoginUserSchema(BaseSchema):
-    email = fields.Email(required=True)
-    password = fields.String(required=True)
+    email = fields.Email(required=True, validate=BaseSchema.length_validator)
+    password = fields.String(required=True, validate=BaseSchema.length_validator)
