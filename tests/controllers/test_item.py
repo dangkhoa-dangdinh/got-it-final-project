@@ -5,7 +5,6 @@ from main.libs.utils import generate_jwt_token
 from main.models.category import CategoryModel
 from main.models.item import ItemModel
 from main.models.user import UserModel
-from main.schemas.item import ItemSchema
 
 
 def create_user(email="a@gmail.com", password="Abc123"):
@@ -146,7 +145,7 @@ class TestPostItem:
 
         post_response = client.post(
             f"/categories/{self.category.id}/items",
-            json={"name": "test", "description": "test"},
+            json={"name": self.item.name, "description": self.item.description},
             headers=successful_authentication,
         )
         assert post_response.status_code == 200
@@ -190,7 +189,7 @@ class TestPostItem:
 
         post_response = client.post(
             f"/categories/{self.category.id}/items",
-            json=ItemSchema().dump(self.item),
+            json={"name": self.item.name, "description": self.item.description},
             headers=[("Authorization", "Bearer ")],
         )
         assert post_response.status_code == 401
@@ -210,7 +209,7 @@ class TestPostItem:
         forbidden_category_id = 2
         post_response = client.post(
             f"/categories/{forbidden_category_id}/items",
-            json={"name": "test", "description": "test"},
+            json={"name": self.item.name, "description": self.item.description},
             headers=successful_authentication,
         )
         assert post_response.status_code == 403
@@ -228,7 +227,7 @@ class TestPostItem:
         not_found_category_id = 32
         post_response = client.post(
             f"/categories/{not_found_category_id}/items",
-            json={"name": "new", "description": "aaa"},
+            json={"name": self.item.name, "description": self.item.description},
             headers=successful_authentication,
         )
         assert post_response.status_code == 404
@@ -293,7 +292,7 @@ class TestPutItem:
 
         post_response = client.put(
             f"/categories/{self.category.id}" f"/items/{self.item.id}",
-            json=ItemSchema().dump(self.item),
+            json={"name": self.item.name, "description": self.item.description},
             headers=[("Authorization", "Bearer ")],
         )
         assert post_response.status_code == 401
@@ -333,12 +332,12 @@ class TestPutItem:
             ("Authorization", f"Bearer {generate_jwt_token(self.user.id)}")
         ]
 
-        post_response = client.put(
+        put_response = client.put(
             f"/categories/{not_found_category_id}/items/{not_found_item_id}",
-            json={"name": "iii"},
+            json={"name": "AAA"},
             headers=successful_authentication,
         )
-        assert post_response.status_code == 404
+        assert put_response.status_code == 404
 
 
 class TestDeleteItem:
@@ -415,7 +414,7 @@ class TestDeleteItem:
         invalid_access_token = [("Authorization", "Bearer abc")]
         response = client.post(
             f"/categories/{self.category.id}/items",
-            json=ItemSchema().dump(self.item),
+            json={"name": self.item.name, "description": self.item.description},
             headers=invalid_access_token,
         )
         assert response.status_code == 400

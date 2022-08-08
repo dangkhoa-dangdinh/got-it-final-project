@@ -9,7 +9,6 @@ class BaseSchema(Schema):
     )
 
     class Meta:
-        # For unknown input fields, raise ValidationError
         unknown = EXCLUDE
 
     def jsonify(self, obj, many=False):
