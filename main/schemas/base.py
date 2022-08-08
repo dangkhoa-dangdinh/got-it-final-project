@@ -17,7 +17,11 @@ class BaseSchema(Schema):
 
     @pre_load
     def strip_whitespace(self, data, **__):
-        return {key.strip(): value.strip() for key, value in data.items()}
+        return {
+            key.strip(): value.strip()
+            for key, value in data.items()
+            if isinstance(key, str) and isinstance(value, str)
+        }
 
 
 class PaginationSchema(BaseSchema):

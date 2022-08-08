@@ -8,6 +8,7 @@ from alembic.config import Config
 
 from main import app as _app
 from main import db
+from main.libs.utils import generate_jwt_token
 from tests.helper import setup_db
 
 if os.getenv("ENVIRONMENT") != "test":
@@ -37,6 +38,7 @@ def recreate_database(app):
     upgrade(_config, "heads")
 
     db.create_all()
+
     setup_db()
 
 
@@ -63,17 +65,6 @@ def client(app, session):
 
 
 @pytest.fixture(scope="function")
-def item_test_data():
-    return {
-        "category_id": 1,
-        "item_id": 1,
-        "post_data": {"name": "new_item", "description": "new_desc"},
-    }
-
-
-@pytest.fixture(scope="function")
 def successful_authentication(client):
-    log_in_data = {"email": "a@gmail.com", "password": "Abc123"}  # user_id: 1
-    log_in_response = client.post("/users/auth", json=log_in_data)
-    jwt_token = log_in_response.json
-    return [("Authorization", f"Bearer {jwt_token['access_token']}")]
+    jwt_token = generate_jwt_token(user_id=1)
+    return [("Authorization", f"Bearer {jwt_token}")]
