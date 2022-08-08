@@ -31,6 +31,10 @@ class TestUser:
         response = client.post("/users/signup", json=data)
         assert response.status_code == 400
 
+    def test_non_json_sign_up(self, client):
+        response = client.post("/users/signup")
+        assert response.status_code == 400
+
     @pytest.mark.parametrize(
         "email, password",
         [
