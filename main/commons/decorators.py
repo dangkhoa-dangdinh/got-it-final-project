@@ -33,7 +33,15 @@ def validate_input(schema):
     def decorator(func):
         @wraps(func)
         def wrapper(**kwargs):
-            data = _get_request_data(schema)
+            try:
+                data = schema().load(_get_request_data())
+
+            except MarshmallowValidationError as error:
+                raise ValidationError(error_message=error.messages)
+
+            except Exception as e:
+                raise BadRequest(error_message=str(e))
+
             return func(data=data, **kwargs)
 
         return wrapper
@@ -73,15 +81,10 @@ def check_owner(func):
     return wrapper
 
 
-def _get_request_data(schema):
-    try:
-        if request.method in ("POST", "PUT"):
-            data = request.get_json()
-        else:
-            data = request.args
-        data = schema().load(data)
-    except MarshmallowValidationError as error:
-        raise ValidationError(error_message=error.messages)
-    except Exception as e:
-        raise BadRequest(error_message=str(e))
+def _get_request_data():
+    if request.method in ("POST", "PUT"):
+        data = request.get_json()
+    else:
+        data = request.args
+
     return data
