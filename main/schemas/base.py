@@ -1,5 +1,5 @@
 from flask import jsonify
-from marshmallow import RAISE, Schema, fields, validate
+from marshmallow import RAISE, Schema, fields, pre_load, validate
 
 
 class BaseSchema(Schema):
@@ -15,13 +15,15 @@ class BaseSchema(Schema):
     def jsonify(self, obj, many=False):
         return jsonify(self.dump(obj, many=many))
 
+    @pre_load
+    def strip_whitespace(self, data, **__):
+        return {key.strip(): value.strip() for key, value in data.items()}
+
 
 class PaginationSchema(BaseSchema):
     # If user input per_page > 20 -> raise Error
     per_page_range_validator = validate.Range(1, 20)
 
-    per_page = fields.Integer(
-        required=True, dump_default=20, validate=per_page_range_validator
-    )
-    page = fields.Integer(required=True, dump_default=1)
+    per_page = fields.Integer(load_default=20, validate=per_page_range_validator)
+    page = fields.Integer(load_default=1)
     total = fields.Integer(dump_only=True)

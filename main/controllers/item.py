@@ -61,7 +61,7 @@ def get_item(item, **__):
 def put_item(item, data, **__):
 
     # Check if item name already exists
-    if ItemModel.query.filter_by(name=data.get("name")).one_or_none():
+    if ItemModel.query.filter_by(name=data["name"]).one_or_none():
         raise ItemAlreadyExists()
 
     item.query.filter_by(id=item.id).update(data)
