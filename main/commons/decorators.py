@@ -37,7 +37,7 @@ def validate_input(schema):
                 data = schema().load(_get_request_data())
 
             except MarshmallowValidationError as error:
-                raise ValidationError(error_message=error.messages)
+                raise ValidationError(error_data=error.messages)
 
             except Exception as e:
                 raise BadRequest(error_message=str(e))

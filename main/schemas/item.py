@@ -1,6 +1,5 @@
-from marshmallow import fields, validates_schema
+from marshmallow import ValidationError, fields, validates_schema
 
-from main.commons.exceptions import MissingAllFields
 from main.schemas.base import BaseSchema, PaginationSchema
 
 
@@ -18,7 +17,7 @@ class ItemUpdateSchema(BaseSchema):
     @validates_schema
     def validate_not_all_fields_missing(self, data, **__):
         if (data.get("name") is None) and (data.get("description") is None):
-            raise MissingAllFields()
+            raise ValidationError(message="All fields are missing")
 
 
 class ItemListSchema(PaginationSchema):

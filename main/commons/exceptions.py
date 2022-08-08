@@ -174,12 +174,6 @@ class CategoryAlreadyExists(BaseError):
     error_code = _ErrorCode.CATEGORY_ALREADY_EXIST
 
 
-class MissingAllFields(BaseError):
-    status_code = StatusCode.BAD_REQUEST
-    error_message = _ErrorMessage.MISSING_ALL_FIELDS
-    error_code = _ErrorCode.MISSING_ALL_FIELDS
-
-
 class InvalidEmailOrPassword(BaseError):
     status_code = StatusCode.BAD_REQUEST
     error_message = _ErrorMessage.INVALID_EMAIL_OR_PASSWORD
