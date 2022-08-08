@@ -85,6 +85,6 @@ def _get_request_data():
     if request.method in ("POST", "PUT"):
         data = request.get_json()
     else:
-        data = request.args
+        data = dict(request.args)
 
     return data

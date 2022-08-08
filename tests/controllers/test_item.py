@@ -146,7 +146,7 @@ class TestPostItem:
 
         post_response = client.post(
             f"/categories/{self.category.id}/items",
-            json=ItemSchema().dump(self.item),
+            json={"name": "test", "description": "test"},
             headers=successful_authentication,
         )
         assert post_response.status_code == 200
@@ -210,7 +210,7 @@ class TestPostItem:
         forbidden_category_id = 2
         post_response = client.post(
             f"/categories/{forbidden_category_id}/items",
-            json=ItemSchema().dump(self.item),
+            json={"name": "test", "description": "test"},
             headers=successful_authentication,
         )
         assert post_response.status_code == 403
@@ -228,7 +228,7 @@ class TestPostItem:
         not_found_category_id = 32
         post_response = client.post(
             f"/categories/{not_found_category_id}/items",
-            json=ItemSchema().dump(self.item),
+            json={"name": "new", "description": "aaa"},
             headers=successful_authentication,
         )
         assert post_response.status_code == 404
@@ -314,7 +314,7 @@ class TestPutItem:
         forbidden_item_id = 2
         post_response = client.put(
             f"/categories/{forbidden_category_id}/items/{forbidden_item_id}",
-            json=ItemSchema().dump(self.item),
+            json={"name": "aaa"},
             headers=successful_authentication,
         )
         assert post_response.status_code == 403
@@ -335,7 +335,7 @@ class TestPutItem:
 
         post_response = client.put(
             f"/categories/{not_found_category_id}/items/{not_found_item_id}",
-            json=ItemSchema().dump(self.item),
+            json={"name": "iii"},
             headers=successful_authentication,
         )
         assert post_response.status_code == 404
