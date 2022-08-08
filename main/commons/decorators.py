@@ -82,7 +82,6 @@ def _get_request_data(schema):
         data = schema().load(data)
     except MarshmallowValidationError as error:
         raise ValidationError(error_message=error.messages)
-    except BadRequest as error:
-        raise BadRequest(error_message=str(error))
-
+    except Exception as e:
+        raise BadRequest(error_message=str(e))
     return data
