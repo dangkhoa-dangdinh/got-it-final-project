@@ -20,7 +20,7 @@ class BaseSchema(Schema):
         return {
             key.strip(): value.strip()
             for key, value in data.items()
-            if isinstance(key, str) and isinstance(value, str)
+            if isinstance(value, str)
         }
 
 
