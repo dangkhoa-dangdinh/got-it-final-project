@@ -9,7 +9,6 @@ from main.commons.exceptions import (
     ForbiddenNotOwner,
     ItemNotFound,
     LackingAccessToken,
-    MissingAllFields,
     ValidationError,
 )
 from main.libs.utils import decode_jwt_token
@@ -34,22 +33,7 @@ def validate_input(schema):
     def decorator(func):
         @wraps(func)
         def wrapper(**kwargs):
-            http_method = request.method
-            if http_method in ("POST", "PUT"):
-                try:
-                    data = request.get_json()
-                except Exception:
-                    raise BadRequest()
-            else:
-                data = request.args
-
-            if data == {}:
-                raise MissingAllFields()
-
-            try:
-                data = schema().load(data)
-            except MarshmallowValidationError as error:
-                raise ValidationError(error_data=error.messages)
+            data = _get_request_data(schema)
             return func(data=data, **kwargs)
 
         return wrapper
@@ -87,3 +71,17 @@ def check_owner(func):
         return func(**kwargs)
 
     return wrapper
+
+
+def _get_request_data(schema):
+    try:
+        if request.method in ("POST", "PUT"):
+            data = request.get_json()
+        else:
+            data = request.args
+        data = schema().load(data)
+        return data
+    except MarshmallowValidationError as error:
+        raise ValidationError(error_message=error.messages)
+    except BadRequest as error:
+        raise BadRequest(error_message=str(error))
